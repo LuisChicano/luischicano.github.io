@@ -1,0 +1,133 @@
+body {
+    font-family: "Roboto", sans-serif; /* Mantener la fuente Roboto */
+    background-color: #121212;
+    color: #ffffff;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background-image: url("https://i.imgur.com/TLMMZU4.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+h1 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    color: #f5c518; /* Color más sobrio para encabezados */
+    text-align: center;
+}
+
+h3 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: #ffffff; /* Color más sobrio para encabezados */
+    text-align: center;
+}
+
+input {
+    padding: 10px;
+    width: 80%;
+    max-width: 400px;
+    border-radius: 5px;
+    border: none;
+    outline: none;
+    margin-bottom: 10px;
+    background-color: #1e1e1e;
+    color: #ffffff;
+}
+
+button {
+    background-color: #b10d20; /* Color rojo más oscuro */
+    color: #ffffff; /* Texto en blanco para mejor contraste */
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    margin: 10px 5px;
+}
+
+button:hover {
+    background-color: #9b0c1a; /* Tono más oscuro para hover */
+}
+
+p {
+    font-size: 1.2rem;
+    margin-top: 10px;
+    text-align: center;
+}
+
+#markAsWatched {
+    display: block;
+    margin: 0 auto;
+}
+
+#imdbLink {
+    display: block;
+    margin-top: 10px;
+    font-size: 1rem;
+    color: #b10d20; /* Color más sobrio */
+}
+
+table {
+    margin-top: 20px;
+    border-collapse: collapse;
+    width: 80%;
+    max-width: 600px;
+    color: #ffffff;
+}
+
+th,
+td {
+    border: 1px solid #000000; 
+    padding: 8px;
+    text-align: center;
+    background-color: #1e1e1e;
+}
+
+th {
+    background-color: #b10d20; /* Encabezados de tabla en tono rojo oscuro */
+}
+
+#history {
+    margin-top: 20px;
+    width: 100%;
+    max-width: 600px;
+}
+
+#imdbLink button {
+    background-color: #f5c518; /* Color amarillo similar a IMDb */
+    color: #121212;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    margin: 10px 5px;
+    display: inline-block; /* Para que funcione correctamente con el enlace */
+}
+
+#imdbLink button:hover {
+    background-color: #c4a800; /* Un tono más oscuro para el hover */
+}
+
+ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+li {
+    list-style-position: inside;
+    padding-left: 0;
+    margin-bottom: 5px;
+}
+
+footer {
+    margin-top: 20px; /* Separar el pie de página */
+    font-size: 0.9rem; /* Tamaño de fuente más pequeño */
+}

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estatutos del Club de Cine</title>
+    <style>
+        body {
+            font-family: 'Georgia', serif; /* Fuente elegante y legible */
+            background-color: #1a1a1a; /* Fondo oscuro */
+            color: white; /* Texto blanco */
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6; /* Espaciado entre líneas */
+            transition: background-color 0.5s; /* Transición suave para cambios de fondo */
+            opacity: 0; /* Comienza oculto para el efecto de fade in */
+            background-image: url("https://i.imgur.com/TLMMZU4.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+        }
+
+        h1, h2 {
+            text-align: center; /* Centramos los encabezados */
+            margin: 20px 0;
+            color: burlywood;
+        }
+
+        h1 {
+            font-size: 2.5em; /* Tamaño del título principal */
+            text-decoration: underline;
+        }
+
+        h2 {
+            font-size: 2em; /* Tamaño de los subtítulos */
+            margin-bottom: 10px;
+        }
+
+        article {
+            margin: 0 auto;
+            max-width: 800px; /* Ancho máximo del artículo */
+            padding: 20px;
+            border-radius: 10px; /* Bordes redondeados */
+            background-color: rgba(53, 53, 53, 0.774); /* Fondo semi-transparente */
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); /* Sombra sutil */
+        }
+
+        /* Animación de entrada */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .fade-in {
+            animation: fadeIn 3s forwards; /* Animación de fade in */
+        }
+
+        .separator {
+            border: none;
+            height: 2px;
+            background: linear-gradient(to right, burlywood, transparent, burlywood);
+            margin: 40px auto;
+            width: 80%;
+            border-radius: 5px;
+        }
+
+    </style>
+</head>
+<body onload="fadeInEffect()">
+    <article class="fade-in">
+        <h1>Estatutos del Club de Cine</h1>
+
+        <p>
+            En virtud de la congregación de las mentes más brillantes y apasionadas del séptimo arte, los presentes estatutos han sido elaborados con la participación democrática y activa de la totalidad de los miembros del club, sin distinción de género. Estos lineamientos no solo reflejan la voluntad colectiva de quienes los suscriben, sino que también sirven como un faro que guía nuestras interacciones y decisiones en el camino hacia el enriquecimiento cultural. 
+        </p>
+        <p>
+            En un mundo donde la cinematografía trasciende fronteras y culturas, nos comprometemos a promover un espacio de respeto, diversidad y aprendizaje. Con este objetivo, los estatutos aquí descritos velan por la culturización y el enriquecimiento de los gustos cinematográficos de cada uno de nuestros miembros, fomentando un intercambio de ideas y experiencias que nutren nuestras almas y expanden nuestra comprensión del arte cinematográfico.
+        </p>
+
+        <h2>Capítulo I: Reglas Generales</h2>
+
+        <p><strong>Artículo 1: De los Vetos Automáticos</strong></p>
+        <p>Se determinará que, en el caso de que tres miembros hayan visualizado la película en cuestión, esta será vetada de forma automática.</p>
+
+        <p><strong>Artículo 2: De la Terminación de las Rondas</strong></p>
+        <p>La ronda se considerará concluyente cuando dos de los participantes queden sin películas disponibles para ser visualizadas.</p>
+
+        <p><strong>Artículo 3: De la Diversidad de Géneros Cinematográficos</strong></p>
+        <p>Se prohíbe la inclusión de tres películas del mismo género en la misma ronda, con el objetivo de fomentar la diversidad y la riqueza cinematográfica.</p>
+
+        <p><strong>Artículo 4: De la Prohibición de Trailers</strong></p>
+        <p>Se establece la prohibición de visualizar trailers de las películas elegidas antes de su proyección, a fin de preservar la experiencia cinematográfica en su estado más puro y sin influencias externas.</p>
+
+        <h2>Capítulo II: De los Vetos</h2>
+
+        <p><strong>Artículo 5: De los Vetos</strong></p>
+        <p>Se establece que cada miembro del club gozará de la prerrogativa de ejercer un único veto por persona y por ronda.</p>
+
+        <p><strong>Artículo 6: Del Antiveto</strong></p>
+        <p>El propietario de la película que ostente el más alto ranking al final de la ronda anterior se hará acreedor a un antiveto, el cual podrá ser utilizado en la ronda subsiguiente.</p>
+
+        <hr class="separator"> 
+
+    </article>
+
+    <script>
+        function fadeInEffect() {
+            document.body.style.opacity = 1; // Cambiar la opacidad al cargar la página
+        }
+    </script>
+</body>
+</html>

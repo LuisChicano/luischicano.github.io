@@ -7,131 +7,10 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
     <link rel="manifest" href="/site.webmanifest" />
+    <link rel="stylesheet" href="styles.css" />
     <title>Momio Rebirth</title>
-    <style>
-      body {
-        font-family: "Roboto", sans-serif;
-        background-color: #121212;
-        color: #ffffff;
-        margin: 0;
-        padding: 0;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 100vh;
-        background-image: url("https://i.imgur.com/TLMMZU4.png");
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-      }
-
-      h1 {
-        font-size: 2.5rem;
-        margin-bottom: 1rem;
-        color: #bb86fc;
-        text-align: center;
-      }
-
-      input {
-        padding: 10px;
-        width: 80%;
-        max-width: 400px;
-        border-radius: 5px;
-        border: none;
-        outline: none;
-        margin-bottom: 10px;
-        background-color: #1e1e1e;
-        color: #ffffff;
-      }
-
-      button {
-        background-color: #03dac5;
-        color: #121212;
-        padding: 10px 20px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        font-size: 1rem;
-        margin: 10px 5px;
-      }
-
-      button:hover {
-        background-color: #018786;
-      }
-
-      p {
-        font-size: 1.2rem;
-        margin-top: 10px;
-        text-align: center;
-      }
-
-      #markAsWatched {
-        display: block;
-        margin: 0 auto;
-        background-color: #bb86fc;
-        color: #121212;
-      }
-
-      #imdbLink {
-        display: block;
-        margin-top: 10px;
-        font-size: 1rem;
-        color: #03dac5;
-      }
-
-      table {
-        margin-top: 20px;
-        border-collapse: collapse;
-        width: 80%;
-        max-width: 600px;
-        color: #ffffff;
-      }
-
-      th,
-      td {
-        border: 1px solid #bb86fc;
-        padding: 8px;
-        text-align: center;
-      }
-
-      th {
-        background-color: #bb86fc;
-      }
-
-      #history {
-        margin-top: 20px;
-        width: 100%;
-        max-width: 600px;
-      }
-
-      #imdbLink button {
-        background-color: #f5c518; /* Color amarillo similar a IMDb */
-        color: #121212;
-        padding: 10px 20px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        font-size: 1rem;
-        margin: 10px 5px;
-        display: inline-block; /* Para que funcione correctamente con el enlace */
-      }
-
-      #imdbLink button:hover {
-        background-color: #c4a800; /* Un tono más oscuro para el hover */
-      }
-
-      ul {
-        list-style-type: none;
-        padding-left: 0;
-      }
-      li {
-        list-style-position: inside;
-        padding-left: 0;
-        margin-bottom: 5px;
-      }
-    </style>
   </head>
+
   <body>
     <h1>MOMIO Rebirth</h1>
     <br />
@@ -144,18 +23,17 @@
 
     <button onclick="chooseRandomMovie()">Elegir película al azar</button>
     <p id="chosenMovie"></p>
-    <button id="rateMovie" style="display: none" onclick="confirmRating()">
-      Puntuar
+    <button id="confirmMovie" style="display: none" onclick="confirmMovie()">
+      Confirmar
     </button>
-    <button
-      id="clearFromPending"
-      style="display: none"
-      onclick="clearFromPending()"
-    >
-      Limpiar de pendientes
+    <button id="vetoMovie" style="display: none" onclick="vetoMovie()">
+      Vetar
     </button>
     <p id="imdbLink"></p>
 
+    <button id="rateMovie" onclick="rateMovie()">Puntuar</button>
+
+    <h3>Historial de puntuaciones</h3>
     <table id="history">
       <thead>
         <tr>
@@ -168,7 +46,34 @@
       <tbody id="historyBody"></tbody>
     </table>
 
+    <h3>Vetos</h3>
+    <table id="bannedList">
+      <thead>
+        <tr>
+          <th>Título</th>
+          <th>Vetada por</th>
+        </tr>
+      </thead>
+      <tbody id="vetoBody"></tbody>
+    </table>
+
+    <br /><br />
+
+    <button onclick="endRound()">¡Ronda finalizada!</button>
+
+    <br /><br />
+
     <button onclick="clearHistory()">Limpiar Historial</button>
+
+    <br /><br />
+
+    <div id="imdbLink">
+      <button onclick="window.location.href='estatutos.html'">Estatutos</button>
+    </div>
+
+    <footer>
+      <p>&copy; Momio 2024</p>
+    </footer>
 
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
@@ -181,6 +86,7 @@
         onSnapshot,
         addDoc,
         doc,
+        updateDoc,
         deleteDoc,
         getDocs,
       } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
@@ -199,9 +105,12 @@
       const db = getFirestore(app);
       const moviesRef = collection(db, "movies");
       const historyRef = collection(db, "history");
+      const vetoesRef = collection(db, "vetoes");
 
       let movies = [];
       let history = [];
+      let vetoes = [];
+      let userVetoes = {}; // Para controlar quién ha vetado ya en la ronda actual
 
       onSnapshot(moviesRef, (snapshot) => {
         movies = [];
@@ -225,6 +134,18 @@
         displayHistory();
       });
 
+      onSnapshot(vetoesRef, (snapshot) => {
+        vetoes = [];
+        snapshot.forEach((doc) => {
+          vetoes.push({
+            id: doc.id,
+            title: doc.data().title,
+            vetoedBy: doc.data().vetoedBy,
+          });
+        });
+        displayVetoes();
+      });
+
       window.addMovie = async function () {
         const movie = document.getElementById("newMovie").value;
         if (movie) {
@@ -243,68 +164,130 @@
         ).textContent = `Total de películas en la lista: ${movies.length}`;
       }
 
-      //   window.chooseRandomMovie = function () {
-      //     if (movies.length > 0) {
-      //       const randomIndex = Math.floor(Math.random() * movies.length);
-      //       const chosenMovie = movies[randomIndex];
-      //       document.getElementById(
-      //         "chosenMovie"
-      //       ).textContent = `Película seleccionada: ${chosenMovie.title}`;
-      //       document.getElementById("rateMovie").style.display = "inline";
-      //       document.getElementById("clearFromPending").style.display = "inline";
-      //       document
-      //         .getElementById("rateMovie")
-      //         .setAttribute("data-title", chosenMovie.title);
-      //       document.getElementById(
-      //         "imdbLink"
-      //       ).innerHTML = `<a href="https://www.imdb.com/find?q=${encodeURIComponent(
-      //         chosenMovie.title
-      //       )}" target="_blank">Ver en IMDb</a>`;
-      //     }
-
-      //     else {
-      //       alert("No hay películas pendientes en la lista.");
-      //     }
-      //   };
-
       window.chooseRandomMovie = function () {
-        if (movies.length > 0) {
-          const randomIndex = Math.floor(Math.random() * movies.length);
-          const chosenMovie = movies[randomIndex];
-          document.getElementById(
-            "chosenMovie"
-          ).textContent = `Película seleccionada: ${chosenMovie.title}`;
-          document.getElementById("rateMovie").style.display = "inline";
-          document.getElementById("clearFromPending").style.display = "inline";
-          document
-            .getElementById("rateMovie")
-            .setAttribute("data-title", chosenMovie.title);
+        const secret = prompt("Escribe la palabra secreta:");
+        if (secret === "cuervo") {
+          if (movies.length > 0) {
+            const randomIndex = Math.floor(Math.random() * movies.length);
+            const chosenMovie = movies[randomIndex];
+            document.getElementById(
+              "chosenMovie"
+            ).textContent = `Película seleccionada: ${chosenMovie.title}`;
+            document.getElementById("confirmMovie").style.display = "inline";
+            document.getElementById("vetoMovie").style.display = "inline";
+            document
+              .getElementById("confirmMovie")
+              .setAttribute("data-title", chosenMovie.title);
+            document
+              .getElementById("vetoMovie")
+              .setAttribute("data-title", chosenMovie.title);
 
-          // Cambiar el contenido de imdbLink para incluir un botón
-          document.getElementById("imdbLink").innerHTML = `
-      <a href="https://www.imdb.com/find?q=${encodeURIComponent(
-        chosenMovie.title
-      )}" target="_blank">
-        <button>Ver en IMDb</button>
-      </a>`;
+            document.getElementById("imdbLink").innerHTML = `
+          <a href="https://www.imdb.com/find?q=${encodeURIComponent(
+            chosenMovie.title
+          )}" target="_blank">
+            <button>Ver en IMDb</button>
+          </a>`;
+          } else {
+            alert("No hay películas pendientes en la lista.");
+          }
         } else {
-          alert("No hay películas pendientes en la lista.");
+          alert("Palabra secreta incorrecta.");
         }
       };
 
-      window.confirmRating = function () {
+      window.confirmMovie = async function () {
         const movieTitle = document
-          .getElementById("rateMovie")
+          .getElementById("confirmMovie")
           .getAttribute("data-title");
-        const confirmPrompt = confirm(
-          `Confirma que quieres puntuar esta película: "${movieTitle}"`
-        );
+        await addDoc(historyRef, {
+          title: movieTitle,
+          ratings: {},
+          average: 0,
+        });
+        alert(`"${movieTitle}" ha sido confirmada y añadida al historial.`);
+      };
 
-        if (confirmPrompt) {
+      window.vetoMovie = async function () {
+        const movieTitle = document
+          .getElementById("vetoMovie")
+          .getAttribute("data-title");
+        const vetoedBy = prompt("¿Quién veta?");
+
+        if (vetoedBy && !userVetoes[vetoedBy]) {
+          // Registrar el veto para este usuario (máximo un veto por ronda)
+          userVetoes[vetoedBy] = true;
+
+          // Añadir la película al historial de vetos
+          await addDoc(vetoesRef, { title: movieTitle, vetoedBy });
+
+          // Buscar y eliminar la película de la colección de películas pendientes
+          const movieToDelete = movies.find(
+            (movie) => movie.title === movieTitle
+          );
+          if (movieToDelete) {
+            await deleteDoc(doc(moviesRef, movieToDelete.id)); // Eliminar de Firebase
+          }
+
+          alert(
+            `"${movieTitle}" ha sido vetada por ${vetoedBy} y eliminada de las películas pendientes.`
+          );
+
+          // Actualizar la vista eliminando los botones de confirmar/vetar y ocultar el link de IMDb
+          document.getElementById("chosenMovie").textContent = "";
+          document.getElementById("confirmMovie").style.display = "none";
+          document.getElementById("vetoMovie").style.display = "none";
+          document.getElementById("imdbLink").innerHTML = "";
+        } else if (userVetoes[vetoedBy]) {
+          alert(`${vetoedBy} ya ha vetado una película en esta ronda.`);
+        }
+      };
+
+      function displayVetoes() {
+        const vetoBody = document.getElementById("vetoBody");
+        vetoBody.innerHTML = "";
+        vetoes.forEach((entry) => {
+          const row = document.createElement("tr");
+          const titleCell = document.createElement("td");
+          titleCell.textContent = entry.title;
+          row.appendChild(titleCell);
+
+          const vetoedByCell = document.createElement("td");
+          vetoedByCell.textContent = entry.vetoedBy;
+          row.appendChild(vetoedByCell);
+
+          vetoBody.appendChild(row);
+        });
+      }
+
+      window.rateMovie = async function () {
+        const latestMovies = history.slice(-3); // Últimas 3 películas añadidas
+        let movieOptions = "Elige una película para puntuar:\n";
+        latestMovies.forEach((movie, index) => {
+          movieOptions += `${index + 1}. ${movie.title}\n`;
+        });
+
+        const selectedMovieIndex = prompt(movieOptions);
+
+        // Control de errores para validar la entrada del usuario
+        if (
+          !selectedMovieIndex ||
+          isNaN(selectedMovieIndex) ||
+          selectedMovieIndex < 1 ||
+          selectedMovieIndex > latestMovies.length
+        ) {
+          alert(
+            "Debes escribir 1, 2 o 3 según la película que quieras puntuar."
+          );
+          return; // Salir de la función si la entrada no es válida
+        }
+
+        if (selectedMovieIndex && latestMovies[selectedMovieIndex - 1]) {
+          const movieTitle = latestMovies[selectedMovieIndex - 1].title;
           const person = prompt("¿Quién eres?");
-          const rating = prompt("¿Qué nota le pones? (1-10)");
+          const rating = parseFloat(prompt("¿Qué nota le pones? (1-10)"));
 
-          if (person && rating) {
+          if (person && !isNaN(rating)) {
             const movieInHistory = history.find(
               (entry) => entry.title === movieTitle
             );
@@ -314,103 +297,107 @@
               const newAverage = calculateAverage(movieInHistory.ratings);
               movieInHistory.average = newAverage;
 
-              // Actualizar el historial
-              updateHistory(movieInHistory.id, movieInHistory);
+              // Actualizar en Firebase
+              const historyDocRef = doc(db, "history", movieInHistory.id);
+              await updateDoc(historyDocRef, {
+                ratings: movieInHistory.ratings,
+                average: movieInHistory.average,
+              });
+
+              alert(`"${movieTitle}" ha sido puntuada con éxito.`);
             } else {
               // Si no existe, crear una nueva entrada en el historial
-              addDoc(historyRef, {
+              await addDoc(historyRef, {
                 title: movieTitle,
                 ratings: { [person]: rating },
                 average: parseFloat(rating),
               });
-            }
-          }
-        } else {
-          const newTitle = prompt("Escribe la película que deseas puntuar:");
-          const movieInHistory = history.find(
-            (entry) => entry.title === newTitle
-          );
-          if (movieInHistory) {
-            // Lógica de puntuación para película existente
-            const person = prompt("¿Quién eres?");
-            const rating = prompt("¿Qué nota le pones? (1-10)");
-            if (person && rating) {
-              movieInHistory.ratings[person] = rating;
-              const newAverage = calculateAverage(movieInHistory.ratings);
-              movieInHistory.average = newAverage;
-
-              // Actualizar el historial
-              updateHistory(movieInHistory.id, movieInHistory);
+              alert(`"${movieTitle}" ha sido puntuada y añadida al historial.`);
             }
           }
         }
       };
 
       function calculateAverage(ratings) {
-        const total = Object.values(ratings).reduce(
-          (acc, rate) => acc + parseFloat(rate),
-          0
-        );
+        // Asegúrate de que ratings no esté vacío para evitar dividir por cero
+        if (Object.keys(ratings).length === 0) return 0;
+
+        // Sumar todas las puntuaciones, asegurándose de convertir cada valor a cadena primero
+        const total = Object.values(ratings).reduce((acc, rate) => {
+          const numericRate = parseFloat(String(rate).replace(",", ".")); // Convertir a string y luego a float
+          return acc + numericRate;
+        }, 0);
+
+        // Contar el número de puntuaciones
         const count = Object.keys(ratings).length;
-        return Math.floor((total / count) * 100) / 100; // Truncar a dos decimales
+
+        // Calcular la media
+        const average = total / count;
+
+        // Devolver la media truncada a dos decimales
+        return parseFloat(average.toFixed(2));
       }
 
-      async function updateHistory(id, updatedEntry) {
-        const historyDocRef = doc(db, "history", id);
-        await deleteDoc(historyDocRef); // Eliminar el antiguo registro
-        await addDoc(historyRef, updatedEntry); // Agregar la versión actualizada
+      // Función para actualizar las puntuaciones y promedio en Firebase
+      async function updateMovieRatingInHistory(docId, updatedData) {
+        const docRef = doc(historyRef, docId);
+        try {
+          await setDoc(docRef, updatedData, { merge: true });
+          console.log("Puntuación actualizada en Firebase");
+        } catch (error) {
+          console.error("Error actualizando el historial en Firebase: ", error);
+        }
       }
 
-      //   window.clearFromPending = async function() {
-      //     const secret = prompt("Escribe la palabra secreta:");
-      //     if (secret === "cuervo") {
-      //       const movieTitle = document.getElementById('rateMovie').getAttribute('data-title');
-      //       const movieInHistory = history.find(entry => entry.title === movieTitle);
-      //       if (movieInHistory) {
-      //         const averageRating = movieInHistory.average;
-      //         alert(`La puntuación media de "${movieTitle}" es ${averageRating}.`);
+      function displayHistory() {
+        const historyBody = document.getElementById("historyBody");
+        historyBody.innerHTML = "";
+        history.forEach((entry, index) => {
+          const row = document.createElement("tr");
+          const rankCell = document.createElement("td");
+          rankCell.textContent = index + 1;
+          row.appendChild(rankCell);
 
-      //         // Limpiar de pendientes
-      //         const movieDocRef = doc(db, 'movies', movieInHistory.id);
-      //         await deleteDoc(movieDocRef);
-      //       }
-      //     } else {
-      //       alert("Palabra secreta incorrecta.");
-      //     }
-      //   }
+          const titleCell = document.createElement("td");
+          titleCell.textContent = entry.title;
+          row.appendChild(titleCell);
 
-      window.clearFromPending = async function () {
+          const ratingsCell = document.createElement("td");
+          const ratingsList = document.createElement("ul");
+          Object.entries(entry.ratings).forEach(([person, rating]) => {
+            const listItem = document.createElement("li");
+            listItem.textContent = `${person}: ${rating}`;
+            ratingsList.appendChild(listItem);
+          });
+          ratingsCell.appendChild(ratingsList);
+          row.appendChild(ratingsCell);
+
+          const averageCell = document.createElement("td");
+          averageCell.textContent = entry.average.toFixed(2);
+          row.appendChild(averageCell);
+
+          historyBody.appendChild(row);
+        });
+      }
+
+      window.endRound = function () {
         const secret = prompt("Escribe la palabra secreta:");
         if (secret === "cuervo") {
-          const movieTitle = document
-            .getElementById("rateMovie")
-            .getAttribute("data-title");
-
-          // Encontrar la película en la colección 'movies' usando su título
-          const movieDocSnapshot = await getDocs(moviesRef);
-          const movieDoc = movieDocSnapshot.docs.find(
-            (doc) => doc.data().title === movieTitle
+          const bestMovie = history[0]; // Mejor película por puntuación media
+          const winner = prompt(
+            `¿Quién sugirió "${bestMovie.title}" la película mejor puntuada de la ronda?`
           );
-
-          if (movieDoc) {
-            const movieId = movieDoc.id; // ID de la película encontrada
-            const averageRating =
-              history.find((entry) => entry.title === movieTitle)?.average ||
-              "N/A"; // Obtener la media del historial
-
+          if (winner) {
             alert(
-              `La puntuación media de "${movieTitle}" es ${averageRating}.`
+              `${winner} ha ganado la ronda y tendrá 2 vetos en lugar de 1 en la próxima ronda.`
             );
-
-            // Limpiar de pendientes
-            const movieDocRef = doc(moviesRef, movieId); // Utilizar el ID correcto
-            await deleteDoc(movieDocRef);
-
-            // Actualizar la lista de películas pendientes después de la eliminación
-            displayTotalMovies(); // Asegúrate de que esta función esté definida y actualice correctamente la UI
-          } else {
+            // Limpiar las películas pendientes y resetear vetos
+            movies.forEach(async (movie) => {
+              await deleteDoc(doc(moviesRef, movie.id));
+            });
+            userVetoes = {}; // Resetear vetos
             alert(
-              `No se encontró la película "${movieTitle}" en la lista de pendientes.`
+              "¡Ronda finalizada! Se han limpiado las películas pendientes."
             );
           }
         } else {
@@ -418,70 +405,11 @@
         }
       };
 
-      //   function displayHistory() {
-      //     const historyBody = document.getElementById("historyBody");
-      //     historyBody.innerHTML = "";
-
-      //     history.forEach((entry, index) => {
-      //       const row = document.createElement("tr");
-      //       const rankingCell = document.createElement("td");
-      //       rankingCell.textContent = index + 1; // Ranking
-      //       row.appendChild(rankingCell);
-
-      //       const titleCell = document.createElement("td");
-      //       titleCell.textContent = entry.title;
-      //       row.appendChild(titleCell);
-
-      //       const ratingsCell = document.createElement("td");
-      //       ratingsCell.textContent = JSON.stringify(entry.ratings);
-      //       row.appendChild(ratingsCell);
-
-      //       const averageCell = document.createElement("td");
-      //       averageCell.textContent = entry.average;
-      //       row.appendChild(averageCell);
-
-      //       historyBody.appendChild(row);
-      //     });
-      //   }
-
-      function displayHistory() {
-        const historyBody = document.getElementById("historyBody");
-        historyBody.innerHTML = "";
-
-        history.forEach((entry, index) => {
-          const row = document.createElement("tr");
-          const rankingCell = document.createElement("td");
-          rankingCell.textContent = index + 1; // Ranking
-          row.appendChild(rankingCell);
-
-          const titleCell = document.createElement("td");
-          titleCell.textContent = entry.title;
-          row.appendChild(titleCell);
-
-          const ratingsCell = document.createElement("td");
-          const ratingsList = document.createElement("ul"); // Crear una lista desordenada
-          Object.entries(entry.ratings).forEach(([user, rating]) => {
-            const listItem = document.createElement("li");
-            listItem.textContent = `${user}: ${rating}`;
-            ratingsList.appendChild(listItem);
-          });
-          ratingsCell.appendChild(ratingsList); // Añadir la lista a la celda
-          row.appendChild(ratingsCell);
-
-          const averageCell = document.createElement("td");
-          averageCell.textContent = entry.average;
-          row.appendChild(averageCell);
-
-          historyBody.appendChild(row);
-        });
-      }
-
       window.clearHistory = async function () {
         const secret = prompt("Escribe la palabra secreta:");
         if (secret === "cuervo") {
-          const historyDocs = await getDocs(historyRef);
-          historyDocs.forEach(async (doc) => {
-            await deleteDoc(doc.ref); // Eliminar cada documento de la colección
+          history.forEach(async (entry) => {
+            await deleteDoc(doc(historyRef, entry.id));
           });
           alert("Historial limpiado.");
         } else {
